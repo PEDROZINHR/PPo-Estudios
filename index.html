@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PPo Estúdios</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- =====================================================
+         TELA INICIAL
+    ====================================================== -->
+
+    <section id="telaInicial" class="tela ativa">
+
+        <div class="inicio-container">
+
+            <img
+                src="REFERENCIAS/logo-ppoestudios.png"
+                class="logo-inicial"
+                alt="PPo Estúdios"
+            >
+
+            <h1>Seja muito bem vindo à PPo Estúdios</h1>
+
+            <p class="texto-inicial">
+                Você encontra séries exclusivas, sucessos do streaming,
+                filmes da Zé Calvo STUDIOS e muito mais em um só lugar.
+            </p>
+
+            <button class="botao-principal" onclick="irParaPerfis()">
+                Entrar
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         TELA DE PERFIS
+    ====================================================== -->
+
+    <section id="telaPerfis" class="tela">
+
+        <div class="perfis-container">
+
+            <img
+                src="REFERENCIAS/logo-ppoestudios.png"
+                class="logo-perfis"
+                alt="PPo Estúdios"
+            >
+
+            <h1>Quem vai assistir?</h1>
+
+            <div id="listaPerfis" class="lista-perfis">
+                <!-- Criado pelo JavaScript -->
+            </div>
+
+            <button class="botao-trocar" onclick="abrirEscolhaPerfil()">
+                📷 &nbsp; Trocar foto de perfil
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         ESCOLHER QUAL PESSOA TERÁ A FOTO ALTERADA
+    ====================================================== -->
+
+    <section id="telaEscolherPessoa" class="tela">
+
+        <div class="escolher-pessoa-container">
+
+            <h1>Escolha o perfil</h1>
+
+            <p>
+                Qual pessoa você quer escolher para trocar a foto de perfil?
+            </p>
+
+            <div id="listaPessoas" class="lista-pessoas">
+                <!-- Criado pelo JavaScript -->
+            </div>
+
+            <button class="botao-voltar" onclick="voltarParaPerfis()">
+                ← Voltar
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         ESCOLHER PERSONAGEM
+    ====================================================== -->
+
+    <section id="telaPersonagens" class="tela">
+
+        <div class="personagens-container">
+
+            <h1>Escolha sua foto de perfil</h1>
+
+            <p>
+                Escolha um personagem para colocar no perfil.
+            </p>
+
+            <div id="listaPersonagens" class="grid-personagens">
+                <!-- Criado pelo JavaScript -->
+            </div>
+
+            <button class="botao-voltar" onclick="voltarParaEscolhaPessoa()">
+                ← Voltar
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         TELA DE FILMES / STREAMING
+    ====================================================== -->
+
+    <section id="telaFilmes" class="tela">
+
+        <!-- HEADER -->
+
+        <header class="header-streaming">
+
+            <div class="header-esquerda">
+
+                <img
+                    src="REFERENCIAS/logo-ppoestudios.png"
+                    class="logo-streaming"
+                    alt="PPo Estúdios"
+                >
+
+            </div>
+
+            <nav class="menu-streaming">
+
+                <button
+                    class="menu-item ativo"
+                    onclick="mostrarCategoria('inicioStreaming', this)"
+                >
+                    Início
+                </button>
+
+                <button
+                    class="menu-item"
+                    onclick="mostrarCategoria('filmes', this)"
+                >
+                    Filmes
+                </button>
+
+                <button
+                    class="menu-item"
+                    onclick="mostrarCategoria('series', this)"
+                >
+                    Séries
+                </button>
+
+                <button
+                    class="menu-item"
+                    onclick="mostrarCategoria('curtas', this)"
+                >
+                    Curtas
+                </button>
+
+                <button
+                    class="menu-item"
+                    onclick="mostrarCategoria('zecalvo', this)"
+                >
+                    Zé Calvo STUDIOS
+                </button>
+
+            </nav>
+
+            <div class="header-direita">
+
+                <button
+                    class="botao-lupa"
+                    onclick="abrirBusca()"
+                    title="Pesquisar"
+                >
+                    🔍
+                </button>
+
+                <button
+                    class="perfil-header"
+                    onclick="voltarParaPerfis()"
+                    title="Voltar para perfis"
+                >
+                    <img
+                        id="fotoPerfilHeader"
+                        src="REFERENCIAS/foto-pedro.png"
+                        alt="Perfil"
+                    >
+                </button>
+
+            </div>
+
+        </header>
+
+
+        <!-- BUSCA -->
+
+        <div id="caixaBusca" class="caixa-busca">
+
+            <input
+                type="text"
+                id="campoBusca"
+                placeholder="Pesquisar..."
+                oninput="pesquisarConteudo()"
+            >
+
+            <button onclick="fecharBusca()">✕</button>
+
+        </div>
+
+
+        <!-- =================================================
+             INÍCIO STREAMING
+        ================================================== -->
+
+        <main id="inicioStreaming" class="conteudo-streaming categoria-streaming ativa">
+
+            <section class="banner-streaming">
+
+                <div class="banner-conteudo">
+
+                    <span class="banner-tag">
+                        PPo ESTÚDIOS
+                    </span>
+
+                    <h1>
+                        Um universo inteiro de histórias.
+                    </h1>
+
+                    <p>
+                        Filmes, séries, curtas e produções exclusivas
+                        em um só lugar.
+                    </p>
+
+                </div>
+
+            </section>
+
+
+            <section class="universo-ppo">
+
+                <h2>UNIVERSO CINEMATOGRÁFICO PPo</h2>
+
+                <p>
+                    Explore as produções e histórias que fazem parte
+                    do universo da PPo Estúdios.
+                </p>
+
+            </section>
+
+
+            <section class="secao-catalogo">
+
+                <h2>Filmes</h2>
+
+                <div class="grade-capas">
+                    <!-- criado pelo JS -->
+                </div>
+
+            </section>
+
+
+            <section class="secao-catalogo">
+
+                <h2>Séries</h2>
+
+                <div class="grade-capas">
+                    <!-- criado pelo JS -->
+                </div>
+
+            </section>
+
+
+            <section class="secao-catalogo">
+
+                <h2>Curtas</h2>
+
+                <div class="grade-capas">
+                    <!-- criado pelo JS -->
+                </div>
+
+            </section>
+
+
+            <section class="secao-catalogo">
+
+                <h2>Zé Calvo STUDIOS</h2>
+
+                <div class="grade-capas">
+                    <!-- criado pelo JS -->
+                </div>
+
+            </section>
+
+        </main>
+
+
+        <!-- =================================================
+             FILMES
+        ================================================== -->
+
+        <main
+            id="filmes"
+            class="conteudo-streaming categoria-streaming"
+        >
+
+            <div class="titulo-categoria">
+                <h1>Filmes</h1>
+                <p>Produções em breve.</p>
+            </div>
+
+            <div
+                id="gradeFilmes"
+                class="grade-capas"
+            ></div>
+
+        </main>
+
+
+        <!-- =================================================
+             SÉRIES
+        ================================================== -->
+
+        <main
+            id="series"
+            class="conteudo-streaming categoria-streaming"
+        >
+
+            <div class="titulo-categoria">
+
+                <h1>Séries</h1>
+
+                <p>
+                    Séries em breve.
+                </p>
+
+            </div>
+
+            <div
+                id="gradeSeries"
+                class="grade-capas"
+            ></div>
+
+        </main>
+
+
+        <!-- =================================================
+             CURTAS
+        ================================================== -->
+
+        <main
+            id="curtas"
+            class="conteudo-streaming categoria-streaming"
+        >
+
+            <div class="titulo-categoria">
+
+                <h1>Curtas</h1>
+
+                <p>
+                    Curtas em breve.
+                </p>
+
+            </div>
+
+            <div
+                id="gradeCurtas"
+                class="grade-capas"
+            ></div>
+
+        </main>
+
+
+        <!-- =================================================
+             ZÉ CALVO STUDIOS
+        ================================================== -->
+
+        <main
+            id="zecalvo"
+            class="conteudo-streaming categoria-streaming"
+        >
+
+            <div class="titulo-categoria">
+
+                <h1>Zé Calvo STUDIOS</h1>
+
+                <p>
+                    Produções da Zé Calvo STUDIOS.
+                </p>
+
+            </div>
+
+            <div
+                id="gradeZeCalvo"
+                class="grade-capas"
+            ></div>
+
+        </main>
+
+    </section>
+
+
+    <!-- =====================================================
+         JAVASCRIPT
+    ====================================================== -->
+
+    <script src="script.js"></script>
+
+</body>
+</html>
