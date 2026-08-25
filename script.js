@@ -1,7 +1,30 @@
 /* =========================================================
    PPo ESTÚDIOS
    SISTEMA COMPLETO
+   FOTOS DE PERFIL COMPARTILHADAS PELO FIRESTORE
 ========================================================= */
+
+
+/* =========================================================
+   CONFIGURAÇÃO DO FIREBASE
+========================================================= */
+
+/*
+ * COLOQUE AQUI O ID DO SEU PROJETO FIREBASE.
+ *
+ * Exemplo:
+ *
+ * const FIREBASE_PROJECT_ID = "ppo-estudios-12345";
+ *
+ * NÃO coloque o nome do site se ele for diferente
+ * do ID mostrado nas configurações do Firebase.
+ */
+
+const FIREBASE_PROJECT_ID = "COLOQUE-SEU-PROJECT-ID-AQUI";
+
+const FIRESTORE_DATABASE = "(default)";
+
+const FIRESTORE_COLLECTION = "fotosPerfis";
 
 
 /* =========================================================
@@ -63,9 +86,6 @@ const perfis = [
         nome: "Yann",
         foto: "REFERENCIAS/foto-yann.png"
     },
-
-
-    /* NOVOS PERFIS */
 
     {
         id: "artur",
@@ -151,6 +171,183 @@ const telas = {
 
 
 /* =========================================================
+   URL BASE DO FIRESTORE
+========================================================= */
+
+function obterURLFirestore(perfilId) {
+
+    return (
+        "https://firestore.googleapis.com/v1/projects/" +
+        encodeURIComponent(FIREBASE_PROJECT_ID) +
+        "/databases/" +
+        encodeURIComponent(FIRESTORE_DATABASE) +
+        "/documents/" +
+        encodeURIComponent(FIRESTORE_COLLECTION) +
+        "/" +
+        encodeURIComponent(perfilId)
+    );
+
+}
+
+
+/* =========================================================
+   VERIFICAR SE FIREBASE FOI CONFIGURADO
+========================================================= */
+
+function firebaseConfigurado() {
+
+    return (
+        FIREBASE_PROJECT_ID &&
+        FIREBASE_PROJECT_ID !==
+        "COLOQUE-SEU-PROJECT-ID-AQUI"
+    );
+
+}
+
+
+/* =========================================================
+   BUSCAR FOTO NO FIRESTORE
+========================================================= */
+
+async function buscarFotoFirestore(perfil) {
+
+    if (!firebaseConfigurado()) {
+
+        return null;
+
+    }
+
+
+    try {
+
+        const resposta =
+            await fetch(
+                obterURLFirestore(perfil.id)
+            );
+
+
+        if (!resposta.ok) {
+
+            return null;
+
+        }
+
+
+        const dados =
+            await resposta.json();
+
+
+        if (
+            dados.fields &&
+            dados.fields.foto &&
+            dados.fields.foto.stringValue
+        ) {
+
+            return dados.fields.foto.stringValue;
+
+        }
+
+
+        return null;
+
+    } catch (erro) {
+
+        console.error(
+            "Erro ao buscar foto no Firestore:",
+            erro
+        );
+
+        return null;
+
+    }
+
+}
+
+
+/* =========================================================
+   SALVAR FOTO NO FIRESTORE
+========================================================= */
+
+async function salvarFotoFirestore(
+    perfilId,
+    caminhoFoto
+) {
+
+    if (!firebaseConfigurado()) {
+
+        console.warn(
+            "Firebase ainda não foi configurado."
+        );
+
+        return false;
+
+    }
+
+
+    try {
+
+        const resposta =
+            await fetch(
+                obterURLFirestore(perfilId),
+                {
+                    method: "PATCH",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+
+                        fields: {
+
+                            foto: {
+
+                                stringValue:
+                                    caminhoFoto
+
+                            }
+
+                        }
+
+                    })
+
+                }
+            );
+
+
+        if (!resposta.ok) {
+
+            const erro =
+                await resposta.text();
+
+            console.error(
+                "Erro do Firestore:",
+                erro
+            );
+
+            return false;
+
+        }
+
+
+        return true;
+
+    } catch (erro) {
+
+        console.error(
+            "Erro ao salvar foto no Firestore:",
+            erro
+        );
+
+        return false;
+
+    }
+
+}
+
+
+/* =========================================================
    TROCAR DE TELA
 ========================================================= */
 
@@ -160,7 +357,9 @@ function mostrarTela(nomeTela) {
 
         if (tela) {
 
-            tela.classList.remove("ativa");
+            tela.classList.remove(
+                "ativa"
+            );
 
         }
 
@@ -169,7 +368,9 @@ function mostrarTela(nomeTela) {
 
     if (telas[nomeTela]) {
 
-        telas[nomeTela].classList.add("ativa");
+        telas[nomeTela].classList.add(
+            "ativa"
+        );
 
     }
 
@@ -193,96 +394,20 @@ function irParaPerfis() {
 
     mostrarTela("perfis");
 
+    criarPerfis();
+
 }
 
 
 /* =========================================================
-   IR PARA PERFIS
+   VOLTAR PARA PERFIS
 ========================================================= */
 
 function voltarParaPerfis() {
 
-    /*
-     * NÃO apagamos o perfil selecionado.
-     *
-     * Isso permite que, quando a pessoa
-     * voltar para os filmes, a bolinha
-     * continue mostrando o perfil correto.
-     */
-
     mostrarTela("perfis");
 
-}
-
-
-/* =========================================================
-   CRIAR LISTA DE PERFIS
-========================================================= */
-
-function criarPerfis() {
-
-    const container =
-        document.getElementById("listaPerfis");
-
-    container.innerHTML = "";
-
-
-    perfis.forEach(perfil => {
-
-        const botao =
-            document.createElement("button");
-
-        botao.className =
-            "perfil-card";
-
-
-        const imagem =
-            document.createElement("img");
-
-        imagem.className =
-            "perfil-foto";
-
-        imagem.alt =
-            perfil.nome;
-
-        imagem.src =
-            obterFotoPerfil(perfil);
-
-
-        const nome =
-            document.createElement("span");
-
-        nome.className =
-            "perfil-nome";
-
-        nome.textContent =
-            perfil.nome;
-
-
-        botao.appendChild(imagem);
-
-        botao.appendChild(nome);
-
-
-        /*
-         * ALTERAÇÃO:
-         *
-         * Agora o perfil clicado é guardado.
-         *
-         * Assim, quando entrar na aba de filmes,
-         * o header saberá qual foto deve mostrar.
-         */
-
-        botao.onclick = function() {
-
-            abrirFilmes(perfil.id);
-
-        };
-
-
-        container.appendChild(botao);
-
-    });
+    criarPerfis();
 
 }
 
@@ -291,24 +416,175 @@ function criarPerfis() {
    FOTO SALVA DO PERFIL
 ========================================================= */
 
-function obterFotoPerfil(perfil) {
+async function obterFotoPerfil(perfil) {
 
-    const chave =
-        "fotoPerfil_" + perfil.id;
+    /*
+     * Primeiro verifica o Firestore.
+     */
+
+    const fotoOnline =
+        await buscarFotoFirestore(
+            perfil
+        );
 
 
-    const fotoSalva =
-        localStorage.getItem(chave);
+    if (fotoOnline) {
+
+        /*
+         * Mantém uma cópia local para
+         * carregar mais rapidamente.
+         */
+
+        localStorage.setItem(
+
+            "fotoPerfil_" +
+            perfil.id,
+
+            fotoOnline
+
+        );
 
 
-    if (fotoSalva) {
-
-        return fotoSalva;
+        return fotoOnline;
 
     }
 
 
+    /*
+     * Se não houver foto online,
+     * procura uma foto antiga local.
+     */
+
+    const fotoLocal =
+        localStorage.getItem(
+            "fotoPerfil_" +
+            perfil.id
+        );
+
+
+    if (fotoLocal) {
+
+        return fotoLocal;
+
+    }
+
+
+    /*
+     * Caso nunca tenha escolhido foto,
+     * usa a foto original.
+     */
+
     return perfil.foto;
+
+}
+
+
+/* =========================================================
+   CRIAR LISTA DE PERFIS
+========================================================= */
+
+async function criarPerfis() {
+
+    const container =
+        document.getElementById(
+            "listaPerfis"
+        );
+
+
+    if (!container) {
+
+        return;
+
+    }
+
+
+    container.innerHTML = "";
+
+
+    /*
+     * Cria os cartões imediatamente.
+     */
+
+    perfis.forEach(perfil => {
+
+        const botao =
+            document.createElement(
+                "button"
+            );
+
+        botao.className =
+            "perfil-card";
+
+
+        const imagem =
+            document.createElement(
+                "img"
+            );
+
+        imagem.className =
+            "perfil-foto";
+
+        imagem.alt =
+            perfil.nome;
+
+
+        const nome =
+            document.createElement(
+                "span"
+            );
+
+        nome.className =
+            "perfil-nome";
+
+        nome.textContent =
+            perfil.nome;
+
+
+        botao.appendChild(
+            imagem
+        );
+
+        botao.appendChild(
+            nome
+        );
+
+
+        /*
+         * Clicar no perfil entra
+         * diretamente nos filmes.
+         */
+
+        botao.onclick =
+            function() {
+
+                abrirFilmes(
+                    perfil.id
+                );
+
+            };
+
+
+        container.appendChild(
+            botao
+        );
+
+
+        /*
+         * Busca a foto online.
+         */
+
+        obterFotoPerfil(
+            perfil
+        ).then(
+            caminho => {
+
+                imagem.src =
+                    caminho;
+
+            }
+        );
+
+    });
 
 }
 
@@ -321,7 +597,9 @@ function abrirEscolhaPerfil() {
 
     criarListaPessoas();
 
-    mostrarTela("escolherPessoa");
+    mostrarTela(
+        "escolherPessoa"
+    );
 
 }
 
@@ -330,10 +608,20 @@ function abrirEscolhaPerfil() {
    CRIAR LISTA DE PESSOAS
 ========================================================= */
 
-function criarListaPessoas() {
+async function criarListaPessoas() {
 
     const container =
-        document.getElementById("listaPessoas");
+        document.getElementById(
+            "listaPessoas"
+        );
+
+
+    if (!container) {
+
+        return;
+
+    }
+
 
     container.innerHTML = "";
 
@@ -341,27 +629,30 @@ function criarListaPessoas() {
     perfis.forEach(perfil => {
 
         const botao =
-            document.createElement("button");
+            document.createElement(
+                "button"
+            );
 
         botao.className =
             "pessoa-card";
 
 
         const imagem =
-            document.createElement("img");
+            document.createElement(
+                "img"
+            );
 
         imagem.className =
             "pessoa-foto";
-
-        imagem.src =
-            obterFotoPerfil(perfil);
 
         imagem.alt =
             perfil.nome;
 
 
         const nome =
-            document.createElement("span");
+            document.createElement(
+                "span"
+            );
 
         nome.className =
             "pessoa-nome";
@@ -370,19 +661,40 @@ function criarListaPessoas() {
             perfil.nome;
 
 
-        botao.appendChild(imagem);
+        botao.appendChild(
+            imagem
+        );
 
-        botao.appendChild(nome);
-
-
-        botao.onclick = function() {
-
-            selecionarPessoa(perfil.id);
-
-        };
+        botao.appendChild(
+            nome
+        );
 
 
-        container.appendChild(botao);
+        botao.onclick =
+            function() {
+
+                selecionarPessoa(
+                    perfil.id
+                );
+
+            };
+
+
+        container.appendChild(
+            botao
+        );
+
+
+        obterFotoPerfil(
+            perfil
+        ).then(
+            caminho => {
+
+                imagem.src =
+                    caminho;
+
+            }
+        );
 
     });
 
@@ -393,7 +705,9 @@ function criarListaPessoas() {
    SELECIONAR PESSOA
 ========================================================= */
 
-function selecionarPessoa(idPerfil) {
+function selecionarPessoa(
+    idPerfil
+) {
 
     perfilSelecionado =
         idPerfil;
@@ -401,7 +715,9 @@ function selecionarPessoa(idPerfil) {
 
     criarPersonagens();
 
-    mostrarTela("personagens");
+    mostrarTela(
+        "personagens"
+    );
 
 }
 
@@ -413,7 +729,17 @@ function selecionarPessoa(idPerfil) {
 function criarPersonagens() {
 
     const container =
-        document.getElementById("listaPersonagens");
+        document.getElementById(
+            "listaPersonagens"
+        );
+
+
+    if (!container) {
+
+        return;
+
+    }
+
 
     container.innerHTML = "";
 
@@ -425,23 +751,25 @@ function criarPersonagens() {
     ) {
 
         const botao =
-            document.createElement("button");
+            document.createElement(
+                "button"
+            );
 
         botao.className =
             "personagem-card";
 
 
         const imagem =
-            document.createElement("img");
+            document.createElement(
+                "img"
+            );
 
         imagem.className =
             "personagem-foto";
 
 
         /*
-         * IMPORTANTE:
-         *
-         * Os arquivos precisam estar exatamente assim:
+         * Arquivos:
          *
          * personagem-1.png
          * personagem-2.png
@@ -458,7 +786,9 @@ function criarPersonagens() {
 
 
         const nome =
-            document.createElement("span");
+            document.createElement(
+                "span"
+            );
 
         nome.className =
             "personagem-nome";
@@ -468,31 +798,41 @@ function criarPersonagens() {
 
 
         /*
-         * Se uma imagem não existir,
-         * o espaço não quebra a página.
+         * Caso uma imagem não exista,
+         * apenas esconde a imagem.
          */
 
-        imagem.onerror = function() {
+        imagem.onerror =
+            function() {
 
-            this.style.visibility =
-                "hidden";
+                this.style.visibility =
+                    "hidden";
 
-        };
-
-
-        botao.appendChild(imagem);
-
-        botao.appendChild(nome);
+            };
 
 
-        botao.onclick = function() {
+        botao.appendChild(
+            imagem
+        );
 
-            escolherPersonagem(numero);
+        botao.appendChild(
+            nome
+        );
 
-        };
+
+        botao.onclick =
+            function() {
+
+                escolherPersonagem(
+                    numero
+                );
+
+            };
 
 
-        container.appendChild(botao);
+        container.appendChild(
+            botao
+        );
 
     }
 
@@ -503,7 +843,9 @@ function criarPersonagens() {
    ESCOLHER PERSONAGEM
 ========================================================= */
 
-function escolherPersonagem(numero) {
+async function escolherPersonagem(
+    numero
+) {
 
     if (!perfilSelecionado) {
 
@@ -517,10 +859,7 @@ function escolherPersonagem(numero) {
 
 
     /*
-     * Salva no LocalStorage.
-     *
-     * Assim, mesmo fechando e abrindo
-     * a página, a foto continua.
+     * Salva localmente também.
      */
 
     localStorage.setItem(
@@ -534,12 +873,45 @@ function escolherPersonagem(numero) {
 
 
     /*
-     * Volta diretamente para a aba de perfis.
+     * SALVA NO FIRESTORE.
+     *
+     * Isso faz com que outros dispositivos
+     * consigam encontrar a mesma foto.
      */
 
-    criarPerfis();
+    const salvouOnline =
+        await salvarFotoFirestore(
 
-    mostrarTela("perfis");
+            perfilSelecionado,
+
+            caminho
+
+        );
+
+
+    if (!salvouOnline) {
+
+        console.warn(
+            "A foto foi salva somente neste dispositivo."
+        );
+
+    }
+
+
+    /*
+     * Atualiza os perfis.
+     */
+
+    await criarPerfis();
+
+
+    /*
+     * Volta para a tela de perfis.
+     */
+
+    mostrarTela(
+        "perfis"
+    );
 
 }
 
@@ -550,7 +922,11 @@ function escolherPersonagem(numero) {
 
 function voltarParaPerfisDaEscolha() {
 
-    mostrarTela("perfis");
+    mostrarTela(
+        "perfis"
+    );
+
+    criarPerfis();
 
 }
 
@@ -563,7 +939,9 @@ function voltarParaEscolhaPessoa() {
 
     criarListaPessoas();
 
-    mostrarTela("escolherPessoa");
+    mostrarTela(
+        "escolherPessoa"
+    );
 
 }
 
@@ -572,18 +950,12 @@ function voltarParaEscolhaPessoa() {
    ABRIR FILMES
 ========================================================= */
 
-function abrirFilmes(idPerfil = null) {
+function abrirFilmes(
+    idPerfil = null
+) {
 
     /*
-     * ALTERAÇÃO:
-     *
-     * Recebe o ID do perfil que foi clicado.
-     *
-     * Exemplo:
-     *
-     * Pedro → "pedro"
-     * Arthur → "arthur"
-     * Gabriel → "gabriel-soares"
+     * Guarda qual perfil entrou.
      */
 
     if (idPerfil) {
@@ -594,7 +966,9 @@ function abrirFilmes(idPerfil = null) {
     }
 
 
-    mostrarTela("filmes");
+    mostrarTela(
+        "filmes"
+    );
 
 
     /*
@@ -602,18 +976,24 @@ function abrirFilmes(idPerfil = null) {
      * do streaming.
      */
 
+    const primeiroMenu =
+        document.querySelector(
+            ".menu-item"
+        );
+
+
     mostrarCategoria(
 
         "inicioStreaming",
 
-        document.querySelector(".menu-item")
+        primeiroMenu
 
     );
 
 
     /*
-     * Atualiza a bolinha do header
-     * para o perfil correto.
+     * Atualiza a foto do perfil
+     * no header.
      */
 
     atualizarFotoHeader();
@@ -625,7 +1005,10 @@ function abrirFilmes(idPerfil = null) {
    MUDAR CATEGORIA
 ========================================================= */
 
-function mostrarCategoria(id, botao) {
+function mostrarCategoria(
+    id,
+    botao
+) {
 
     const categorias =
         document.querySelectorAll(
@@ -633,20 +1016,28 @@ function mostrarCategoria(id, botao) {
         );
 
 
-    categorias.forEach(categoria => {
+    categorias.forEach(
+        categoria => {
 
-        categoria.classList.remove("ativa");
+            categoria.classList.remove(
+                "ativa"
+            );
 
-    });
+        }
+    );
 
 
     const categoria =
-        document.getElementById(id);
+        document.getElementById(
+            id
+        );
 
 
     if (categoria) {
 
-        categoria.classList.add("ativa");
+        categoria.classList.add(
+            "ativa"
+        );
 
     }
 
@@ -657,16 +1048,22 @@ function mostrarCategoria(id, botao) {
         );
 
 
-    botoes.forEach(item => {
+    botoes.forEach(
+        item => {
 
-        item.classList.remove("ativo");
+            item.classList.remove(
+                "ativo"
+            );
 
-    });
+        }
+    );
 
 
     if (botao) {
 
-        botao.classList.add("ativo");
+        botao.classList.add(
+            "ativo"
+        );
 
     }
 
@@ -692,16 +1089,13 @@ function criarCapas() {
         "gradeFilmes"
     );
 
-
     criarGrupoCapas(
         "gradeSeries"
     );
 
-
     criarGrupoCapas(
         "gradeCurtas"
     );
-
 
     criarGrupoCapas(
         "gradeZeCalvo"
@@ -709,7 +1103,7 @@ function criarCapas() {
 
 
     /*
-     * Capas da página inicial
+     * Capas da página inicial.
      */
 
     const secoes =
@@ -718,24 +1112,27 @@ function criarCapas() {
         );
 
 
-    secoes.forEach(secao => {
+    secoes.forEach(
+        secao => {
 
-        secao.innerHTML = "";
+            secao.innerHTML =
+                "";
 
 
-        for (
-            let i = 1;
-            i <= 10;
-            i++
-        ) {
+            for (
+                let i = 1;
+                i <= 10;
+                i++
+            ) {
 
-            secao.appendChild(
-                criarCapa()
-            );
+                secao.appendChild(
+                    criarCapa()
+                );
+
+            }
 
         }
-
-    });
+    );
 
 }
 
@@ -744,10 +1141,14 @@ function criarCapas() {
    CRIAR GRUPO DE 10 CAPAS
 ========================================================= */
 
-function criarGrupoCapas(id) {
+function criarGrupoCapas(
+    id
+) {
 
     const container =
-        document.getElementById(id);
+        document.getElementById(
+            id
+        );
 
 
     if (!container) {
@@ -757,7 +1158,8 @@ function criarGrupoCapas(id) {
     }
 
 
-    container.innerHTML = "";
+    container.innerHTML =
+        "";
 
 
     for (
@@ -782,14 +1184,18 @@ function criarGrupoCapas(id) {
 function criarCapa() {
 
     const capa =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     capa.className =
         "capa-card";
 
 
     const texto =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     texto.className =
         "capa-em-breve";
@@ -798,7 +1204,9 @@ function criarCapa() {
         "EM BREVE";
 
 
-    capa.appendChild(texto);
+    capa.appendChild(
+        texto
+    );
 
 
     return capa;
@@ -818,14 +1226,29 @@ function abrirBusca() {
         );
 
 
+    if (!caixa) {
+
+        return;
+
+    }
+
+
     caixa.classList.add(
         "aberta"
     );
 
 
-    document.getElementById(
-        "campoBusca"
-    ).focus();
+    const campo =
+        document.getElementById(
+            "campoBusca"
+        );
+
+
+    if (campo) {
+
+        campo.focus();
+
+    }
 
 }
 
@@ -842,14 +1265,26 @@ function fecharBusca() {
         );
 
 
-    caixa.classList.remove(
-        "aberta"
-    );
+    if (caixa) {
+
+        caixa.classList.remove(
+            "aberta"
+        );
+
+    }
 
 
-    document.getElementById(
-        "campoBusca"
-    ).value = "";
+    const campo =
+        document.getElementById(
+            "campoBusca"
+        );
+
+
+    if (campo) {
+
+        campo.value = "";
+
+    }
 
 
     limparPesquisa();
@@ -863,22 +1298,24 @@ function fecharBusca() {
 
 function pesquisarConteudo() {
 
+    const campo =
+        document.getElementById(
+            "campoBusca"
+        );
+
+
+    if (!campo) {
+
+        return;
+
+    }
+
+
     const termo =
-        document
-            .getElementById("campoBusca")
-            .value
+        campo.value
             .toLowerCase()
             .trim();
 
-
-    /*
-     * Como as capas ainda não possuem
-     * nomes, a pesquisa apenas mostra
-     * ou esconde as capas.
-     *
-     * Quando você colocar títulos futuramente,
-     * essa função poderá pesquisar por eles.
-     */
 
     const capas =
         document.querySelectorAll(
@@ -886,28 +1323,30 @@ function pesquisarConteudo() {
         );
 
 
-    capas.forEach(capa => {
+    capas.forEach(
+        capa => {
 
-        if (!termo) {
+            if (!termo) {
+
+                capa.style.display =
+                    "block";
+
+                return;
+
+            }
+
+
+            /*
+             * Como ainda não existem nomes
+             * nas capas, uma pesquisa preenchida
+             * esconde as capas.
+             */
 
             capa.style.display =
-                "block";
-
-            return;
+                "none";
 
         }
-
-
-        /*
-         * Por enquanto, as capas são
-         * "Em breve", então aparecem
-         * quando a pesquisa está vazia.
-         */
-
-        capa.style.display =
-            "none";
-
-    });
+    );
 
 }
 
@@ -924,12 +1363,14 @@ function limparPesquisa() {
         );
 
 
-    capas.forEach(capa => {
+    capas.forEach(
+        capa => {
 
-        capa.style.display =
-            "block";
+            capa.style.display =
+                "block";
 
-    });
+        }
+    );
 
 }
 
@@ -938,7 +1379,7 @@ function limparPesquisa() {
    FOTO DO HEADER
 ========================================================= */
 
-function atualizarFotoHeader() {
+async function atualizarFotoHeader() {
 
     const fotoHeader =
         document.getElementById(
@@ -954,13 +1395,8 @@ function atualizarFotoHeader() {
 
 
     /*
-     * ALTERAÇÃO PRINCIPAL:
-     *
-     * Agora não usamos mais o Pedro
-     * obrigatoriamente.
-     *
-     * A foto depende do perfil que
-     * entrou na aba de filmes.
+     * Se existe um perfil selecionado,
+     * mostra a foto dele.
      */
 
     if (perfilSelecionado) {
@@ -975,10 +1411,14 @@ function atualizarFotoHeader() {
 
         if (perfilAtual) {
 
-            fotoHeader.src =
-                obterFotoPerfil(
+            const foto =
+                await obterFotoPerfil(
                     perfilAtual
                 );
+
+
+            fotoHeader.src =
+                foto;
 
 
             return;
@@ -990,25 +1430,42 @@ function atualizarFotoHeader() {
 
     /*
      * Caso nenhum perfil tenha sido
-     * selecionado, Pedro continua
-     * sendo a imagem padrão.
+     * selecionado, usa Pedro como padrão.
      */
 
     const perfilPedro =
         perfis.find(
             perfil =>
-                perfil.id === "pedro"
+                perfil.id ===
+                "pedro"
         );
 
 
     if (perfilPedro) {
 
-        fotoHeader.src =
-            obterFotoPerfil(
+        const foto =
+            await obterFotoPerfil(
                 perfilPedro
             );
 
+
+        fotoHeader.src =
+            foto;
+
     }
+
+}
+
+
+/* =========================================================
+   ATUALIZAR HEADER QUANDO VOLTA
+========================================================= */
+
+async function atualizarTudo() {
+
+    await criarPerfis();
+
+    await atualizarFotoHeader();
 
 }
 
@@ -1021,17 +1478,31 @@ document.addEventListener(
 
     "DOMContentLoaded",
 
-    function() {
+    async function() {
 
-        criarPerfis();
+        /*
+         * Cria as capas.
+         */
 
         criarCapas();
 
-        atualizarFotoHeader();
+
+        /*
+         * Cria os perfis.
+         */
+
+        await criarPerfis();
 
 
         /*
-         * A primeira tela sempre será
+         * Atualiza a foto do header.
+         */
+
+        await atualizarFotoHeader();
+
+
+        /*
+         * A primeira tela será
          * a tela inicial.
          */
 
